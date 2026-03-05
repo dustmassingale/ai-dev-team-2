@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Kanban Board</title>
+        <link href="./lib/w3.css" />
+        <style>
+            .kanban-board {
+                display: flex;
+                gap: 20px;
+                padding: 20px;
+                min-height: calc(100vh - 150px);
+            }
+
+            .add-form {
+                background: #f4f4f4;
+                padding: 20px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+            }
+        </style>
+    </head>
+    <body class="w3-light-grey">
+        <div class="container w3-container" style="max-width: 1400px">
+            <!-- Add New Task Form -->
+            <div class="add-form">
+                <h3 class="w3-center">Add New Task</h3>
+                <form id="taskForm">
+                    <div class="w3-margin-bottom">
+                        <label for="title" class="w3-text-grey-dark"
+                            >Title *</label
+                        >
+                        <input
+                            type="text"
+                            id="title"
+                            required
+                            placeholder="Enter task title"
+                        />
+                    </div>
+
+                    <div class="w3-margin-bottom">
+                        <label for="description" class="w3-text-grey-dark"
+                            >Description</label
+                        >
+                        <textarea
+                            id="description"
+                            rows="3"
+                            placeholder="Task description"
+                        ></textarea>
+                    </div>
+
+                    <div class="w3-margin-bottom">
+                        <label for="assignee" class="w3-text-grey-dark"
+                            >Assignee</label
+                        >
+                        <input
+                            type="text"
+                            id="assignee"
+                            placeholder="Name or initial"
+                        />
+                    </div>
+
+                    <div class="w3-margin-bottom">
+                        <label for="id" class="w3-text-grey-dark"
+                            >ID (optional)</label
+                        >
+                        <input
+                            type="text"
+                            id="id"
+                            placeholder="Task ID number"
+                        />
+                    </div>
+
+                    <div class="w3-margin-bottom">
+                        <label for="dueDate" class="w3-text-grey-dark"
+                            >Due Date</label
+                        >
+                        <input type="date" id="dueDate" />
+                    </div>
+
+                    <div class="w3-margin-bottom">
+                        <label for="parentTask" class="w3-text-grey-dark"
+                            >Parent Task (optional)</label
+                        >
+                        <select id="parentTask"></select>
+                    </div>
+
+                    <div class="w3-margin-bottom">
+                        <label for="linkedTasks" class="w3-text-grey-dark"
+                            >Linked Tasks (comma-separated IDs)</label
+                        >
+                        <input
+                            type="text"
+                            id="linkedTasks"
+                            placeholder="e.g., 101, 102"
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="btn w3-block w3-green w3-padding-large"
+                    >
+                        Add Task
+                    </button>
+                </form>
+            </div>
+
+            <!-- Kanban Board -->
+            <div class="kanban-board">
+                <!-- Backlog Column -->
+                <div id="backlogColumn" class="w3-col m4">
+                    <h2 class="w3-center w3-text-grey">Backlog</h2>
+                    <span
+                        id="backlogCount"
+                        class="badge w3-circle w3-padding-sm w3-light-blue"
+                        >0</span
+                    >
+                    <div id="backlog"></div>
+                </div>
+
+                <!-- To-Do Column -->
+                <div id="todoColumn" class="w3-col m4">
+                    <h2 class="w3-center w3-text-grey">To-Do</h2>
+                    <span
+                        id="todoCount"
+                        class="badge w3-circle w3-padding-sm w3-light-blue"
+                        >0</span
+                    >
+                    <div id="todo"></div>
+                </div>
+
+                <!-- Doing Column -->
+                <div id="doingColumn" class="w3-col m4">
+                    <h2 class="w3-center w3-text-grey">Doing</h2>
+                    <span
+                        id="doingCount"
+                        class="badge w3-circle w3-padding-sm w3-light-blue"
+                        >0</span
+                    >
+                    <div id="doing"></div>
+                </div>
+
+                <!-- Review Column -->
+                <div id="reviewColumn" class="w3-col m4">
+                    <h2 class="w3-center w3-text-grey">Review</h2>
+                    <span
+                        id="reviewCount"
+                        class="badge w3-circle w3-padding-sm w3-light-blue"
+                        >0</span
+                    >
+                    <div id="review"></div>
+                </div>
+
+                <!-- Done Column -->
+                <div id="doneColumn" class="w3-col m4">
+                    <h2 class="w3-center w3-text-green">Done</h2>
+                    <span
+                        id="doneCount"
+                        class="badge w3-circle w3-padding-sm w3-light-blue"
+                        >0</span
+                    >
+                    <div id="done"></div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Kanban Board State
+            let tasks = JSON.parse(localStorage.getItem("kanbanTasks")) || [];
+            const columns = {
+                backlog: "backlog",
+                todo: "todo",
+                doing: "doing",
+                review: "review",
+                done: "done",
+            };
+
+            // Initialize board on load
+            document.addEventListener("DOMContentLoaded", () => {
+                renderBoard();
+                populateParentSelect();
+            });
+
+            // Add new task
+            document
+                .getElementById("taskForm")
+                .addEventListener("submit", (e) => {
+                    e.preventDefault();
+
+                    const newTask = {
+                        id: generateId(),
+                        title: document.getElementById("title").value,
+                        description:
+                            document.getElementById("description").value,
+                        assignee: document.getElementById("assignee").value,
+                        taskNumber:
+                            parseInt(document.getElementById("id").value) ||
+                            null,
+                        dueDate: document.getElementById("dueDate").value,
+                        parentTask: document.getElementById("parentTask").value,
+                        linkedTasks: document
+                            .getElementById("linkedTasks")
+                            .value.split(",")
+                            .map((s) => s.trim())
+                            .filter((s) => s),
+                        status: columns.backlog,
+                    };
+
+                    tasks.push(newTask);
+                    saveAndRender();
+                    e.target.reset();
+                });
+
+            // Generate unique ID
+            function generateId() {
+                return (
+                    "TASK-" +
+                    Date.now().toString(36) +
+                    Math.random().toString(36).substr(2, 5).toUpperCase()
+                );
+            }
+
+            // Populate parent task dropdown with existing tasks
+            function populateParentSelect() {
+                const select = document.getElementById("parentTask");
+                select.innerHTML = '<option value="">No Parent</option>';
+
+                const existingIds = new Set(tasks.map((t) => t.id));
+                tasks
+                    .filter((t) => !existingIds.has(t.id))
+                    .forEach((task) => {
+                        const option = document.createElement("option");
+                        option.value = task.id;
+                        option.textContent = `${task.taskNumber || "N/A"} - ${task.title}`;
+                        select.appendChild(option);
+                    });
+            }
+
+            // Render the entire board
+            function renderBoard() {
+                columns.backlog.innerHTML = "";
+                columns.todo.innerHTML = "";
+                columns.doing.innerHTML = "";
+                columns.review.innerHTML = "";
+                columns.done.innerHTML = "";
+
+                tasks.forEach((task) => {
+                    const card = createTaskCard(task);
+
+                    if (task.status === columns.backlog)
+                        document.getElementById("backlog").appendChild(card);
+                    else if (task.status === columns.todo)
+                        document.getElementById("todo").appendChild(card);
+                    else if (task.status === columns.doing)
+                        document.getElementById("doing").appendChild(card);
+                    else if (task.status === columns.review)
+                        document.getElementById("review").appendChild(card);
+                    else if (task.status === columns.done)
+                        document.getElementById("done").appendChild(card);
+                });
+
+                updateCounts();
+            }
+
+            // Create task card HTML
+            function createTaskCard(task) {
+                const div = document.createElement("div");
+                div.className = "w3-card-4";
+                div.dataset.id = task.id;
+
+                let linkedTasksHtml = "";
+                if (task.linkedTasks && task.linkedTasks.length > 0) {
+                    linkedTasksHtml = `<span class="badge w3-light-blue">${task.linkedTasks.length} linked</span>`;
+                }
+
+                div.innerHTML = `
+                <div class="w3-text-grey">
+                    ${task.taskNumber || "#"} - ${task.title}
+                </div>
+                <div class="w3-small w3-text-grey">
+                    Assignee: ${task.assignee || "Unassigned"}${linkedTasksHtml}
+                </div>
+            `;
+
+                div.addEventListener("click", () => selectTask(task.id));
+                return div;
+            }
+
+            // Select a task for moving
+            function selectTask(id) {
+                const selected = document.querySelector(".w3-card-4.selected");
+
+                if (selected) {
+                    selected.classList.remove("selected");
+                }
+
+                const clickedCard = document.querySelector(
+                    `.w3-card-4[data-id="${id}"]`,
+                );
+                if (clickedCard) {
+                    clickedCard.classList.add("selected");
+                }
+            }
+
+            // Update column counts
+            function updateCounts() {
+                Object.values(columns).forEach((colId) => {
+                    const count = document.getElementById(colId + "Count");
+                    const tasksInColumn = tasks.filter(
+                        (t) => t.status === colId,
+                    );
+                    count.textContent = tasksInColumn.length;
+                });
+            }
+
+            // Save to localStorage and re-render
+            function saveAndRender() {
+                localStorage.setItem("kanbanTasks", JSON.stringify(tasks));
+                renderBoard();
+            }
+
+            // Drag and drop handlers
+            let draggedTaskId = null;
+            let selectedCard = null;
+
+            document.querySelectorAll(".w3-card-4").forEach((card) => {
+                card.addEventListener("dragstart", (e) => {
+                    if (!card.classList.contains("selected")) {
+                        selectTask(card.dataset.id);
+                    }
+                    draggedTaskId = card.dataset.id;
+                    e.dataTransfer.effectAllowed = "move";
+                });
+
+                card.addEventListener("dragend", () => {
+                    draggedTaskId = null;
+                    const selectedCardEl = document.querySelector(
+                        ".w3-card-4.selected",
+                    );
+                    if (selectedCardEl) {
+                        selectedCardEl.classList.remove("selected");
+                        selectedCard = null;
+                    }
+                });
+            });
+
+            // Column drop zones
+            Object.values(columns).forEach((colId) => {
+                const columnDiv = document.getElementById(colId);
+
+                columnDiv.addEventListener("dragover", (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                });
+
+                columnDiv.addEventListener("drop", (e) => {
+                    e.preventDefault();
+
+                    if (!draggedTaskId || !selectedCard) return;
+
+                    const taskIndex = tasks.findIndex(
+                        (t) => t.id === draggedTaskId,
+                    );
+                    if (taskIndex > -1) {
+                        tasks[taskIndex].status = colId;
+                        saveAndRender();
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>
