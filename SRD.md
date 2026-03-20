@@ -1,11 +1,11 @@
 # Solution Requirements Document (SRD)
 ## AI Workflow Manager (AWM) — Autonomous Code Review & Git Integration System
 
-**Version:** 1.0  
-**Status:** Draft  
-**Project:** AWM — AI Agent Orchestration Platform  
-**Author:** Human Operator  
-**Date:** 2026-03-06
+**Version:** 1.1
+**Status:** Updated
+**Project:** AWM — AI Agent Orchestration Platform
+**Author:** Human Operator
+**Date:** 2026-03-20
 
 ---
 
@@ -23,6 +23,7 @@
 10. [Deployment & Operations](#deployment--operations)
 11. [Security Requirements](#security-requirements)
 12. [Appendix: Glossary](#appendix-glossary)
+13. [Modular Structure](#modular-structure)
 
 ---
 
@@ -102,8 +103,8 @@ AWM addresses these by orchestrating two specialized AI agents to handle the ful
 ┌─────────────────────────────────────────────────────────────┐
 │                  Git Integration Layer                        │
 │          (Branch Mgmt | Commits | CI Hooks)                  │
-└─────────────────────────────────────────────────────────────┘
-                              ↓ ↑
+└────────────────────────────-┬──────────────────────────────┘
+                              ↓
 ┌─────────────────────────────────────────────────────────────┐
 │                   Storage Layer                               │
 │         (Tasks | Code | Reviews | Agent Memory)              │
@@ -251,6 +252,7 @@ hotfix/{critical-issue}              → Urgent fixes
 - **Agents Page:** View agent status, memory, and health
 - **Message Board:** Threaded discussions per task
 - **Chat Interface:** Direct chat with active developer/evaluator
+- **Planning Section:** Architecture diagrams, implementation steps, and task breakdowns
 
 ### FR-8: System Prompt Management
 
@@ -695,11 +697,145 @@ Log all agent actions for compliance:
 
 ---
 
+## Modular Structure
+
+### Overview
+The AWM project will adopt a **modular structure** to improve maintainability, scalability, and reusability. Each module will encapsulate a specific feature or functionality, with dependencies managed via the `/lib` directory.
+
+### Directory Structure
+
+```
+D:\dev\ai-dev-team\
+├── agents/                  # AI agent definitions and logic
+├── lib/                     # Modular libraries and dependencies
+│   ├── css/
+│   │   ├── w3-4.css         # W3.CSS v4 (core styling library)
+│   │   ├── mermaid-10-9-0.css # Mermaid.js v10.9.0 (for diagrams)
+│   │   └── ...               # Other CSS libraries
+│   ├── js/
+│   │   ├── w3-4.js          # W3.CSS v4 JavaScript (core)
+│   │   ├── mermaid-10-9-0.js # Mermaid.js v10.9.0 (for diagrams)
+│   │   ├── marked-12-0-0.js  # Marked.js v12.0.0 (Markdown parser)
+│   │   ├── router.js         # Custom vanilla JS router
+│   │   └── ...               # Other JS libraries
+│   └── build.py             # Build script for bundling
+├── scripts/                 # Modular JavaScript components
+│   ├── components/          # Reusable UI components
+│   │   ├── kanban.js         # Kanban board logic
+│   │   ├── message-board.js  # Message board logic
+│   │   ├── planning.js       # Planning and architecture section
+│   │   └── ...               # Other components
+│   ├── store.js             # State management
+│   ├── router.js            # Routing logic
+│   └── utils.js             # Utility functions
+├── styles/                  # Modular CSS files
+│   ├── index.css            # Core styles
+│   ├── kanban.css           # Kanban board styles
+│   ├── planning.css         # Planning section styles
+│   └── ...                  # Other style files
+├── index.html               # Main SPA entry point
+├── start.bat                # Shell script to build, and launch web page; opens browser to locally served index.html
+└── SRD.md                   # This document
+```
+
+### Key Modules
+
+#### 1. **Planning Module**
+**Purpose:** Enable users to architect and plan implementations using diagrams and structured steps.
+
+**Components:**
+- **Architecture Diagrams:** Powered by Mermaid.js for visualizing system architecture.
+- **Implementation Steps:** Structured breakdown of tasks with dependencies.
+- **Task Breakdown:** Modular components for defining subtasks, priorities, and timelines.
+
+**Files:**
+- `/scripts/components/planning.js` (Logic for planning section)
+- `/styles/planning.css` (Styling for planning section)
+- `/lib/js/mermaid-10-9-0.js` (Mermaid.js dependency)
+- `/lib/css/mermaid-10-9-0.css` (Mermaid.js CSS)
+
+**Example Usage:**
+```javascript
+// Load Mermaid.js for diagrams
+import mermaid from '/lib/js/mermaid-10-9-0.js';
+
+// Render a Mermaid diagram
+mermaid.initialize({ startOnLoad: true });
+```
+
+#### 2. **Kanban Module**
+**Purpose:** Visual task management with drag-and-drop functionality.
+
+**Components:**
+- **Task Cards:** Reusable components for task cards.
+- **Columns:** Backlog, In Progress, Review, Done.
+- **Drag-and-Drop:** Vanilla JS implementation for reordering tasks.
+
+**Files:**
+- `/scripts/components/kanban.js` (Logic for Kanban board)
+- `/styles/kanban.css` (Styling for Kanban board)
+
+#### 3. **Message Board Module**
+**Purpose:** Threaded discussions for tasks and agent interactions.
+
+**Components:**
+- **Comment Threads:** Nested comments with Markdown support.
+- **Agent Mentions:** Highlighting @human and @agent mentions.
+- **Resolved/Unresolved States:** Visual indicators for comment status.
+
+**Files:**
+- `/scripts/components/message-board.js` (Logic for message board)
+- `/styles/message-board.css` (Styling for message board)
+
+#### 4. **Core Libraries**
+**Purpose:** Shared dependencies and utilities.
+
+**Files:**
+- `/lib/js/w3-4.js` (W3.CSS v4 JavaScript)
+- `/lib/css/w3-4.css` (W3.CSS v4 styles)
+- `/lib/js/marked-12-0-0.js` (Marked.js for Markdown parsing)
+- `/scripts/store.js` (State management)
+- `/scripts/router.js` (Routing logic)
+
+### Versioning Convention
+
+All third-party libraries and core dependencies will follow a **name-version** naming convention:
+
+- **CSS Files:** `library-name-version.css` (e.g., `w3-4.css`, `mermaid-10-9-0.css`)
+- **JS Files:** `library-name-version.js` (e.g., `w3-4.js`, `mermaid-10-9-0.js`)
+
+This ensures clarity and avoids conflicts when updating dependencies.
+
+### Build Process
+
+The `build.py` script will bundle all modular components into a single `index.html` file for deployment. The script will:
+1. Concatenate modular JS/CSS files.
+2. Minify and optimize assets.
+3. Inject dependencies into the HTML.
+4. Generate a production-ready `index.html`.
+
+**Example Build Command:**
+```bash
+python3 build.py
+```
+
+### Integration with W3.CSS
+
+W3.CSS v4 will remain a **core dependency** for styling the SPA. It will be imported as:
+
+- `/lib/css/w3-4.css` (CSS)
+- `/lib/js/w3-4.js` (JavaScript)
+
+This ensures compatibility with existing components while allowing modular extensions.
+
+---
+
 ## Revision History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-03-06 | Human Operator | Initial SRD based on AWM system |
+| 1.1 | 2026-03-20 | Human Operator | Updated to include modular structure, Mermaid.js integration, and versioned dependencies |
 
 ---
 
