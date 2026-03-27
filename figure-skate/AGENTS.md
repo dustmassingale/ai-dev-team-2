@@ -7,7 +7,7 @@
 - [x] Correct "202" to "2026" in upcoming competitions
 - [x] Remove extra closing footer tag
 - [x] Update start.bat with proper background server process
-- [ ] Check changes into git and commit
+- [x] Check changes into git and commit
 
 ## Current State Assessment
 
