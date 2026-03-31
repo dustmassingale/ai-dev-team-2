@@ -9,48 +9,52 @@ Output:
     index.html (in the project root)
 """
 
-import os
 import json
+import os
 import re
 
 BASE = os.path.dirname(os.path.abspath(__file__))
-SRC  = os.path.join(BASE, 'src')
+SRC = os.path.join(BASE, "src")
+
 
 def read(path):
-    with open(path, 'r', encoding='utf-8') as f:
+    with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
+
 def read_json(path):
-    with open(path, 'r', encoding='utf-8') as f:
+    with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
+
 
 def js_str(s):
     """Escape a string for embedding in a JS template literal."""
-    return s.replace('\\', '\\\\').replace('`', '\\`').replace('${', '\\${')
+    return s.replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${")
+
 
 # ── Read source files ─────────────────────────────────────
 
-css    = read(os.path.join(SRC, 'styles', 'app.css'))
-pages  = [
-    read(os.path.join(SRC, 'pages', 'kanban.html')),
-    read(os.path.join(SRC, 'pages', 'agents.html')),
-    read(os.path.join(SRC, 'pages', 'messageboard.html')),
-    read(os.path.join(SRC, 'pages', 'chat.html')),
+css = read(os.path.join(SRC, "styles", "app.css"))
+pages = [
+    read(os.path.join(SRC, "pages", "kanban.html")),
+    read(os.path.join(SRC, "pages", "agents.html")),
+    read(os.path.join(SRC, "pages", "messageboard.html")),
+    read(os.path.join(SRC, "pages", "chat.html")),
 ]
 js_files = [
-    read(os.path.join(SRC, 'js', 'store.js')),
-    read(os.path.join(SRC, 'js', 'router.js')),
-    read(os.path.join(SRC, 'js', 'inference.js')),
-    read(os.path.join(SRC, 'js', 'kanban.js')),
-    read(os.path.join(SRC, 'js', 'messageboard.js')),
-    read(os.path.join(SRC, 'js', 'agents.js')),
-    read(os.path.join(SRC, 'js', 'chat.js')),
+    read(os.path.join(SRC, "js", "store.js")),
+    read(os.path.join(SRC, "js", "router.js")),
+    read(os.path.join(SRC, "js", "inference.js")),
+    read(os.path.join(SRC, "js", "kanban.js")),
+    read(os.path.join(SRC, "js", "messageboard.js")),
+    read(os.path.join(SRC, "js", "agents.js")),
+    read(os.path.join(SRC, "js", "chat.js")),
 ]
 
-soul_dev  = read(os.path.join(SRC, 'agents', 'developer', 'soul.md'))
-soul_eval = read(os.path.join(SRC, 'agents', 'evaluator', 'soul.md'))
-mem_dev   = read_json(os.path.join(SRC, 'agents', 'developer', 'memory.json'))
-mem_eval  = read_json(os.path.join(SRC, 'agents', 'evaluator', 'memory.json'))
+soul_dev = read(os.path.join(SRC, "agents", "developer", "soul.md"))
+soul_eval = read(os.path.join(SRC, "agents", "evaluator", "soul.md"))
+mem_dev = read_json(os.path.join(SRC, "agents", "developer", "memory.json"))
+mem_eval = read_json(os.path.join(SRC, "agents", "evaluator", "memory.json"))
 
 # ── Build seed data JS block ──────────────────────────────
 
@@ -249,38 +253,40 @@ inline_styles = f"""/* === app.css === */
 
 # ── Assemble JS ───────────────────────────────────────────
 
-all_js = '\n\n'.join([
-    f'// ── {name} ──\n{code}'
-    for name, code in [
-        ('seed data',    seed_js),
-        ('store.js',     js_files[0]),
-        ('router.js',    js_files[1]),
-        ('inference.js', js_files[2]),
-        ('kanban.js',    js_files[3]),
-        ('messageboard.js', js_files[4]),
-        ('agents.js',    js_files[5]),
-        ('chat.js',      js_files[6]),
+all_js = "\n\n".join(
+    [
+        f"// ── {name} ──\n{code}"
+        for name, code in [
+            ("seed data", seed_js),
+            ("store.js", js_files[0]),
+            ("router.js", js_files[1]),
+            ("inference.js", js_files[2]),
+            ("kanban.js", js_files[3]),
+            ("messageboard.js", js_files[4]),
+            ("agents.js", js_files[5]),
+            ("chat.js", js_files[6]),
+        ]
     ]
-])
+)
 
-inline_js = f'<script>\n{all_js}\n</script>'
+inline_js = f"<script>\n{all_js}\n</script>"
 
 # ── Assemble HTML ─────────────────────────────────────────
 
-pages_html = '\n\n'.join(pages)
-shell = read(os.path.join(SRC, 'main.html'))
+pages_html = "\n\n".join(pages)
+shell = read(os.path.join(SRC, "main.html"))
 
 output = shell
-output = output.replace('/* INJECT_CSS */', inline_styles)
-output = output.replace('<!-- INJECT_PAGES -->', pages_html)
-output = output.replace('<!-- INJECT_JS -->', inline_js)
+output = output.replace("/* INJECT_CSS */", inline_styles)
+output = output.replace("<!-- INJECT_PAGES -->", pages_html)
+output = output.replace("<!-- INJECT_JS -->", inline_js)
 
-out_path = os.path.join(BASE, 'index.html')
-with open(out_path, 'w', encoding='utf-8') as f:
+out_path = os.path.join(BASE, "index.html")
+with open(out_path, "w", encoding="utf-8") as f:
     f.write(output)
 
-print(f'✅  Built index.html ({len(output):,} bytes)')
-print(f'    Pages:   {len(pages)} injected')
-print(f'    JS files: {len(js_files)} bundled')
-print(f'    Soul files: developer + evaluator embedded')
-print(f'\nOpen index.html in your browser to launch AWM.')
+print(f"✅  Built index.html ({len(output):,} bytes)")
+print(f"    Pages:   {len(pages)} injected")
+print(f"    JS files: {len(js_files)} bundled")
+print(f"    Soul files: developer + evaluator embedded")
+print(f"\nOpen index.html in your browser to launch AWM.")

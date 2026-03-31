@@ -1,27 +1,227 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <</head>meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI</title> Workflow Manager</title>
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>AI Workflow Manager</title>
 
-    <!-- External dependencies -->
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+        <!-- External dependencies -->
+        <link
+            rel="stylesheet"
+            href="https://www.w3schools.com/w3css/4/w3.css"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    /* INJECT_CSS */
-</head>
-<body></body>
-    <!-- Main application container -->
-    <div id="app" class="w3-container w3-padding-large">
-        <!-- Navigation and content will be injected here by pages -->
+        <style>
+            /* INJECT_CSS */
+        </style>
+    </head>
+    <body>
+        <!-- Main application container -->
+        <div id="app">
+            <!-- Topbar -->
+            <div id="topbar" style="position: relative; z-index: 10">
+                <div class="logo">AWM <span>/ AI Workflow Manager</span></div>
+                <nav>
+                    <a href="#kanban" data-nav="kanban">Kanban</a>
+                    <a href="#agents" data-nav="agents">Agents</a>
+                    <a href="#board" data-nav="board">Board</a>
+                    <a href="#chat" data-nav="chat">Chat</a>
+                </nav>
+                <div class="spacer"></div>
+                <button
+                    class="btn btn-primary btn-sm"
+                    id="settings-trigger-btn"
+                    style="margin-left: 12px"
+                >
+                    ⚙️ Configure Agents
+                </button>
+                <div class="mention-bell" id="mention-bell">
+                    🔔
+                    <div class="badge" id="mention-badge"></div>
+                </div>
+            </div>
 
-        <!-- Toast notifications container -->
-        <div id="toast-container"></div>
-    </div>
+            <!-- Main content area -->
+            <div id="main-content">
+                <!-- INJECT_PAGES -->
+            </div>
 
-    <!-- INJECT_PAGES -->
+            <!-- Toast notifications container -->
+            <div id="toast-container"></div>
+        </div>
 
-    <!-- INJECT_JS -->
-</body>
+        <!-- Settings Modal for Agent Configuration -->
+        <div class="modal-overlay" id="settings-modal">
+            <div class="modal" style="width: 700px; max-height: 90vh">
+                <div class="modal-header">
+                    <h2>Agent Configuration</h2>
+                    <button
+                        class="btn btn-ghost btn-sm btn-icon"
+                        id="close-settings-modal"
+                    >
+                        ×
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p
+                        style="
+                            color: var(--text-secondary);
+                            margin-bottom: 16px;
+                        "
+                    >
+                        Configure where your AI agent models will be served
+                        from. Select Ollama for local models or
+                        OpenAI-compatible APIs for remote services.
+                    </p>
+                    <div class="form-group">
+                        <label>Endpoint Type</label>
+                        <select id="settings-endpoint-type">
+                            <option value="ollama">Ollama (Local)</option>
+                            <option value="openai">OpenAI Compatible</option>
+                            <option value="anthropic">Anthropic Claude</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Endpoint URL</label>
+                        <input
+                            type="url"
+                            id="settings-endpoint-url"
+                            placeholder="http://localhost:11434 or https://api.example.com/v1/chat/completions"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label>Model Name</label>
+                        <input
+                            type="text"
+                            id="settings-model"
+                            placeholder="llama2, mistral, claude-3-sonnet, etc."
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label>API Key (if required)</label>
+                        <input
+                            type="password"
+                            id="settings-api-key"
+                            placeholder="Leave blank for local models"
+                        />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" id="save-settings-btn">
+                        Save Configuration
+                    </button>
+                    <button class="btn btn-ghost" id="cancel-settings-btn">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- AWM Application Initialization -->
+        <script>
+            // Settings Modal for Agent Configuration
+            const settingsModal = document.getElementById("settings-modal");
+
+            function openSettingsModal() {
+                console.log("[AWM] Opening settings modal...");
+                settingsModal.classList.add("open");
+                document
+                    .getElementById("close-settings-modal")
+                    .addEventListener("click", () => {
+                        settingsModal.classList.remove("open");
+                    });
+            }
+
+            // Initialize AWM Application
+            function initAWM() {
+                console.log("[AWM] Initializing AWM...");
+
+                // Add settings trigger button to topbar if not already present
+                const existingBtn = document.getElementById(
+                    "settings-trigger-btn",
+                );
+                if (!existingBtn) {
+                    const btn = document.createElement("button");
+                    btn.className = "btn btn-primary btn-sm";
+                    btn.textContent = "⚙️ Configure Agents";
+                    btn.id = "settings-trigger-btn";
+                    btn.style.cssText = "margin-left: 12px;";
+                    document.getElementById("topbar").appendChild(btn);
+
+                    btn.addEventListener("click", () => {
+                        openSettingsModal();
+                    });
+                } else {
+                    // Ensure button is visible (not covered by modal)
+                    const existingBtn = document.getElementById(
+                        "settings-trigger-btn",
+                    );
+                    if (
+                        existingBtn &&
+                        settingsModal.classList.contains("open")
+                    ) {
+                        existingBtn.style.display = "none";
+                    }
+                }
+
+                // Initialize navigation hash routing
+                initNavigation();
+            }
+
+            function navigateTo(page) {
+                console.log("[AWM] Navigating to page:", page);
+                window.location.hash = page;
+
+                // Update active nav link
+                const navLinks = document.querySelectorAll("#topbar nav a");
+                navLinks.forEach((link) => {
+                    if (link.getAttribute("data-nav") === page) {
+                        link.classList.add("active");
+                    } else {
+                        link.classList.remove("active");
+                    }
+                });
+
+                // Hide all pages and show the requested one
+                const pages = document.querySelectorAll(".page");
+                console.log("[AWM] Found", pages.length, "pages to navigate");
+                pages.forEach((page) => {
+                    if (page.getAttribute("data-page") === page) {
+                        console.log(
+                            "[AWM] Showing page:",
+                            page.getAttribute("data-page"),
+                        );
+                        page.style.display = "flex";
+                    } else {
+                        console.log("[AWM] Hiding page");
+                        page.style.display = "none";
+                    }
+                });
+
+                // Scroll to top
+                window.scrollTo(0, 0);
+            }
+
+            function initNavigation() {
+                console.log("[AWM] Initializing navigation...");
+                window.addEventListener("hashchange", handleHashChange);
+                window.addEventListener("load", handleHashChange);
+
+                function handleHashChange() {
+                    const hash = window.location.hash.slice(1) || "kanban";
+                    navigateTo(hash);
+                }
+            }
+
+            // Initialize the application when DOM is ready
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", initAWM);
+            } else {
+                console.log("[AWM] DOM already loaded, initializing...");
+                initAWM();
+            }
+        </script>
+    </body>
 </html>
