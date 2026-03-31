@@ -352,6 +352,32 @@ class MessageBoardModule {
   }
 
   /**
+   * Post a general message to the message board (not tied to a specific task)
+   * @param {string} sender - The sender of the message ("human", "developer", "evaluator", etc.)
+   * @param {string} text - The message content
+   */
+  postMessage(sender, text) {
+    const newMessage = {
+      id: Date.now().toString(),
+      sender: sender || "human",
+      text: text || "",
+      mentions: this.extractMentions(text),
+      replies: [],
+      status: "active",
+      createdAt: new Date().toISOString(),
+      taskRef: null, // General message board post, not tied to a task
+    };
+
+    this.messages.push(newMessage);
+
+    if (document.querySelector(".message-board")) {
+      this.renderAllMessages();
+    }
+
+    return newMessage;
+  }
+
+  /**
    * Extract @mentions from text using regex
    */
   extractMentions(text) {

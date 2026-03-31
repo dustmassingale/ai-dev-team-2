@@ -20,8 +20,6 @@ dev/
     │   ├── index.js           # Application initialization
     │   ├── router.js          # Routing logic
     │   └── store.js           # State management utilities
-    ├── soul_developer.md      # Developer agent persona/configuration
-    ├── soul_evaluator.md      # Evaluator agent persona/configuration
     ├── SRD.md                 # System Requirements Document
     ├── styles/                # CSS styling (index.css)
     ├── TODO.md                # Task tracking and development roadmap
@@ -52,7 +50,7 @@ This repository serves as the central hub for:
 1. Navigate to the `agents` folder
 2. Review `SRD.md` for system requirements
 3. Check `TODO.md` for current development tasks
-4. Examine `soul_developer.md` and `soul_evaluator.md` for agent configurations
+4. Examine `developer/soul.md` and `evaluator/soul.md` for agent configurations
 
 ## License
 

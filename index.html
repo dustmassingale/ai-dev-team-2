@@ -2170,10 +2170,33 @@ I am the Evaluator Agent. My purpose is to review code with rigor, fairness, and
             function buildSystemPrompt(role) {
                 const soul = Store.getSoul(role);
                 const memory = Store.getMemory(role);
-                const recentMessages = Store.getMessages()
+                const allMessages = Store.getMessages();
+                const recentMessages = allMessages
                     .slice(0, 20)
                     .map((m) => `[${m.sender}] ${m.text}`)
                     .join("\n");
+
+                // Check for mentions directed at this agent
+                const mentionedMessages = allMessages.filter((m) => {
+                    const mentionRegex = /@(developer|evaluator)/gi;
+                    const matches = m.text.match(mentionRegex) || [];
+                    return matches.some(
+                        (mention) => mention.toLowerCase() === `@${role}`,
+                    );
+                });
+
+                const mentionSection =
+                    mentionedMessages.length > 0
+                        ? [
+                              "",
+                              "## ⚠️ MENTIONS FOR YOU",
+                              mentionedMessages
+                                  .map(
+                                      (m) => `[${m.sender}] @${role} ${m.text}`,
+                                  )
+                                  .join("\n"),
+                          ].join("\n")
+                        : "";
 
                 return [
                     soul,
@@ -2183,6 +2206,7 @@ I am the Evaluator Agent. My purpose is to review code with rigor, fairness, and
                     "",
                     "## Recent Message Board (shared context)",
                     recentMessages || "(no messages yet)",
+                    mentionSection,
                     "",
                     "## Instructions",
                     "Respond in JSON. Your response must be a valid JSON object with these fields:",
@@ -3021,6 +3045,7 @@ ${task.comments.map((c) => `  [${c.author}] ${c.text}`).join("\n") || "  (none)"
                 }
 
                 Kanban.renderBoard();
+                MessageBoard.renderBoard();
                 MessageBoard.updateMentionBadge();
             }
 
