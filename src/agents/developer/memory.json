@@ -1,0 +1,46 @@
+{
+  "agent_role": "developer",
+  "current_focus": null,
+  "last_task_processed_at": null,
+  "checklist_items": [
+    {
+      "id": "security-audit",
+      "name": "Security Audit",
+      "enabled": true,
+      "description": "Review for security vulnerabilities and best practices"
+    },
+    {
+      "id": "type-safety",
+      "name": "Type Safety",
+      "enabled": true,
+      "description": "Verify type correctness and consistency"
+    },
+    {
+      "id": "code-clarity",
+      "name": "Code Clarity",
+      "enabled": true,
+      "description": "Assess readability and maintainability"
+    },
+    {
+      "id": "test-coverage",
+      "name": "Test Coverage",
+      "enabled": true,
+      "description": "Evaluate test adequacy and edge case handling"
+    },
+    {
+      "id": "documentation-completeness",
+      "name": "Documentation Completeness",
+      "enabled": true,
+      "description": "Check for required documentation and comments"
+    },
+    {
+      "id": "api-contract-validity",
+      "name": "API Contract Validity",
+      "enabled": true,
+      "description": "Verify API interfaces match specifications"
+    }
+  ],
+  "preferred_linting_tools": [],
+  "code_style_guide": null,
+  "knowledge_base": []
+}
